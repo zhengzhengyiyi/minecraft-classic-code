@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.mojang'
+version = 'rd-131655'
+
+def nativesDir = "libs/lwjgl-2.9.3/native/macosx/"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.lwjgl.lwjgl:lwjgl:2.9.3'
+    implementation 'org.lwjgl.lwjgl:lwjgl_util:2.9.3'
+    
+    runtimeOnly fileTree(dir: nativesDir, include: '*.dylib')
+}
+
+task copyNatives(type: Copy) {
+    from nativesDir
+    into "$buildDir/resources/main/natives"
+}
+
+processResources.dependsOn copyNatives
+
+jar {
+    archiveClassifier.set('all')
+    manifest {
+        attributes 'Main-Class': 'com.mojang.rubydung.RubyDung'
+    }
+    from {
+        fileTree(dir: 'lib', include: '**/*.dylib')
+    }
+}
+
+application {
+    mainClass = 'com.mojang.rubydung.RubyDung'
+    applicationDefaultJvmArgs = [
+        "-Dorg.lwjgl.librarypath=$buildDir/resources/main/natives"
+    ]
+}
